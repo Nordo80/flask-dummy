@@ -1,0 +1,59 @@
+version: '3.9'
+
+services:
+  flask-dummy:
+    build:
+      context: ./flask-dummy
+      dockerfile: Dockerfile
+    container_name: flask-dummy
+    networks:
+      - flask_app
+    ports:
+      - "8080:8080"
+
+  alloy:
+    image: grafana/alloy:v1.3.0
+    container_name: alloy
+    networks:
+      - flask_app
+    volumes:
+      - ./grafana-alloy/config.alloy:/etc/alloy/config.alloy
+    ports:
+      - "12345:12345"
+    command: >
+      run --server.http.listen-addr=0.0.0.0:12345 
+      --storage.path=/var/lib/alloy/data 
+      /etc/alloy/config.alloy
+
+  grafana:
+    image: grafana/grafana:11.1.1
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_FEATURE_TOGGLES_ENABLE=accessControlOnCall
+      - GF_INSTALL_PLUGINS=https://storage.googleapis.com/integration-artifacts/grafana-lokiexplore-app/grafana-lokiexplore-app-latest.zip;grafana-lokiexplore-app
+    volumes:
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/etc/grafana/dashboards
+    networks:
+      - flask_app
+
+  loki:
+    image: grafana/loki:3.1.0
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/loki-config.yaml
+    volumes:
+      - ./grafana-loki/loki-config.yaml:/etc/loki/loki-config.yaml
+    networks:
+      - flask_app
+
+networks:
+  flask_app:
+    driver: bridge

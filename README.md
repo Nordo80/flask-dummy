@@ -21,6 +21,7 @@ This project showcases a Flask application that integrates with the Grafana ecos
 To run this project, you'll need:
 - **Docker**: Ensure Docker is installed (tested on version `24.0.5`).
 - **Linux**: The setup was tested on `RHEL7`.
+- **Ports**: Ports [8080, 12345, 3100, 3000] are opened.
 
 ## 🧪 How to Test
 1. Clone this repository:
